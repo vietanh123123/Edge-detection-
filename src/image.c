@@ -53,46 +53,121 @@ void scale_image(float *result, const float *img, int w, int h) {
 }
 
 float get_pixel_value(const float *img, int w, int h, int x, int y) {
-    (void)img;
-    (void)w;
-    (void)h;
-    (void)x;
-    (void)y;
-
-    // TODO: Implement me!
-
-    return 0;
+    if ( x < 0 ){
+        x = -x - 1 ;
+     } else if ( x >= w){
+        x = 2 * (w - 1) - x ; 
+    }
+        if ( y < 0 ){
+        y = -y - 1 ;
+     } else if ( y >= h){
+        y = 2 * (h - 1) - y ; 
+    }
+     int index = y * w + x;
+     return img[index];
+    
+    
 }
 
 float *array_init(int size) {
-    (void)size;
-
-    // TODO: Implement me!
-
-    return NULL;
+   
+    float *arr = (float *)malloc(size * sizeof(float));
+    if (arr == NULL) {
+        return NULL;
+    }
+    return arr;
 }
 
 void array_destroy(float *m) {
-    (void)m;
-
-    // TODO: Implement me!
+    if (m != NULL) {
+        free(m);
+    }
 }
 
 float *read_image_from_file(const char *filename, int *w, int *h) {
-    (void)filename;
-    (void)w;
-    (void)h;
+    FILE *fileptr = fopen(filename, "r");
+    if (fileptr == NULL) {
+        fprintf(stderr,"Error: File %s not found\n", filename);
+        return NULL;
+    }
 
-    // TODO: Implement me!
+    char file_type[3];
+    int max_gray_value;
 
-    return NULL;
+    //file type check(read the header )
+    if( fscanf(fileptr, "%2s", file_type) != 1 || strcmp(file_type, "P2") != 0) {
+        fprintf(stderr, "Error: Invalid file type\n");
+        fclose(fileptr);
+        return NULL;
+    }
+    
+    // Dimension check 
+    
+    if (fscanf(fileptr, "%d %d", w, h) != 2 || *w <= 0 || *h <= 0) {
+        fprintf(stderr, "Error: Invalid dimensions\n");
+        fclose(fileptr);
+        return NULL;
+    }
+
+    //Read the maximum gray value
+    if (fscanf(fileptr, "%d", &max_gray_value) != 1 || max_gray_value < 0 || max_gray_value > 255 ) {
+        fprintf(stderr, "Error: Invalid max gray value\n");
+        fclose(fileptr);
+        return NULL;
+    }
+    
+    //Allocate memory for the image 
+    float *img = array_init((*w) * (*h)); 
+    if (img == NULL) {
+        fclose(fileptr);
+        return NULL;
+    }
+    
+    //Read the pixel values 
+    for (int i = 0; i < (*w)*(*h); i++) {
+    int pixel_value;
+    if (fscanf(fileptr, "%d", &pixel_value) != 1) {
+        fprintf(stderr, "Error: Invalid pixel value\n");
+        array_destroy(img);
+        fclose(fileptr);
+        return NULL;
+    }
+    
+    if (pixel_value <0 || pixel_value > 255) {
+        fprintf(stderr, "Error: Invalid pixel value\n");
+        array_destroy(img);
+        fclose(fileptr);
+        return NULL;
+    }
+    img[i] = (float)pixel_value;
+ }
+    fclose(fileptr);
+    return img;
 }
 
-void write_image_to_file(const float *img, int w, int h, const char *filename) {
-    (void)img;
-    (void)w;
-    (void)h;
-    (void)filename;
-
-    // TODO: Implement me!
+void write_image_to_file(const float *img, int w, int h, const char *filename  ) {
+     FILE *fileptr = fopen(filename, "w");
+      if (fileptr == NULL) {  //check if the file is found
+        fprintf(stderr, "Error: File not %s found\n", filename);
+        return;  
+      }
+    
+      fprintf(fileptr, "P2\n");
+      fprintf(fileptr, "%d %d\n", w, h);
+      fprintf(fileptr, "255\n");   
+    
+    //Write the pixel values
+    
+    for (int i = 0; i < w*h; i++) {
+        int pixel_value = (int)img[i];
+        if (pixel_value < 0) pixel_value = 0;
+        if (pixel_value > 255) pixel_value = 255;
+        fprintf(fileptr, "%d\n", pixel_value);
+    }
+    fclose(fileptr);
 }
+
+
+
+
+
