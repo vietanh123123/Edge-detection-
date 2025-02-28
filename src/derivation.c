@@ -12,10 +12,15 @@
 void gradient_magnitude(float *result, const float *d_x, const float *d_y,
                         int w, int h) {
 
-   for (int i = 0; i < h*w; i++) {
-    result[i] = sqrt(   (d_x[i])*(d_x[i])  +  (d_y[i])*(d_y[i])  );
-
-    }
+                            for (int y = 0; y < h; y++) {
+                                for (int x = 0; x < w; x++) {
+                                 
+                                 int index = y * w + x;
+                                  //compute Magnitude
+                                 result[index] = sqrt(d_x[index] * d_x[index] + d_y[index] * d_y[index]);
+                             }
+                         }
+                     
  }
 
 const float sobel_x[9] = {1, 0, -1, 2, 0, -2, 1, 0, -1};
